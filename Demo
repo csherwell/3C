@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resizable Circles</title>
+<style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f0f0f0;
+        margin: 0;
+    }
+    #circle-container {
+        position: relative;
+        width: 500px;
+        height: 500px;
+        border: 1px solid #ccc;
+        background-color: #fff;
+    }
+    .circle {
+        position: absolute;
+        border-radius: 50%;
+        cursor: pointer;
+        user-select: none;
+    }
+    #circle-red {
+        width: 100px;
+        height: 100px;
+        top: 100px;
+        left: 150px;
+        background-color: red;
+    }
+    #circle-blue {
+        width: 100px;
+        height: 100px;
+        top: 250px;
+        left: 100px;
+        background-color: blue;
+    }
+    #circle-green {
+        width: 100px;
+        height: 100px;
+        top: 250px;
+        left: 300px;
+        background-color: green;
+    }
+</style>
+</head>
+<body>
+
+<div id="circle-container">
+    <div id="circle-red" class="circle"></div>
+    <div id="circle-blue" class="circle"></div>
+    <div id="circle-green" class="circle"></div>
+</div>
+
+<script>
+    let selectedCircle = null;
+    let startY = 0;
+    let startHeight = 0;
+
+    // Function to get the radius of a circle
+    function getRadius(circle) {
+        return parseInt(circle.style.width) / 2;
+    }
+
+    // Start resizing the circle
+    function onMouseDown(event) {
+        if (event.button !== 0) return; // Only left mouse button
+        selectedCircle = event.target;
+        startY = event.clientY;
+        startHeight = selectedCircle.clientHeight;
+        selectedCircle.style.border = "2px dashed yellow";
+        window.addEventListener("mousemove", onMouseMove);
+        window.addEventListener("mouseup", onMouseUp);
+        event.preventDefault();
+    }
+
+    // Resize the circle
+    function onMouseMove(event) {
+        if (!selectedCircle) return;
+        const dy = event.clientY - startY;
+        const newSize = Math.max(20, startHeight + dy);
+        selectedCircle.style.width = `${newSize}px`;
+        selectedCircle.style.height = `${newSize}px`;
+    }
+
+    // End resizing and send data to Qualtrics
+    function onMouseUp() {
+        if (!selectedCircle) return;
+        selectedCircle.style.border = "none";
+
+        const redRadius = getRadius(document.getElementById("circle-red"));
+        const blueRadius = getRadius(document.getElementById("circle-blue"));
+        const greenRadius = getRadius(document.getElementById("circle-green"));
+
+        // Send the radius data to the parent Qualtrics page
+        const message = {
+            redRadius: redRadius,
+            blueRadius: blueRadius,
+            greenRadius: greenRadius
+        };
+        window.parent.postMessage(message, "*");
+
+        selectedCircle = null;
+        window.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("mouseup", onMouseUp);
+    }
+
+    // Attach event listeners to circles
+    document.querySelectorAll(".circle").forEach((circle) => {
+        circle.addEventListener("mousedown", onMouseDown);
+    });
+</script>
+
+</body>
+</html>
